@@ -70,7 +70,7 @@ export default function Home() {
   };
 
   const handleError = () => {
-    toast({ title: "IBC success", status: "error" });
+    toast({ title: "IBC error", status: "error" });
   };
 
   const { mutate, isLoading } = useMutation(handleMutation, {

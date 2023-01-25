@@ -3,11 +3,15 @@ import { Center, Container, Button, useToast } from "@chakra-ui/react";
 import BigNumber from "bignumber.js";
 import { useChain } from "@cosmos-kit/react";
 import { WalletSection } from "../components";
+import { assertIsDeliverTxSuccess } from "@cosmjs/stargate";
 import { useMutation } from "react-query";
+import Long from "long";
+import { fromBase64 } from "@cosmjs/encoding";
 import {
   createMessageSend,
   createTxIBCMsgTransfer,
 } from "@tharsis/transactions";
+import { TxRaw } from "cosmjs-types/cosmos/tx/v1beta1/tx";
 import { decodePubkey } from "@cosmjs/proto-signing";
 
 const TIMEOUT_TIMESTAMP = 5 * 60 * 1000 * 1000 * 1000;
@@ -67,14 +71,19 @@ export default function Home() {
 
     const client = await evmos.getSigningStargateClient();
 
-    console.log("Client", client);
+    const chainId = await client.getChainId();
+
+    console.log("Client", chainId);
 
     const { accountNumber, sequence } = await client.getSequence(evmos.address);
 
-    // Not working
-    const offlineSigner = await evmos.getOfflineSigner();
+    // console.log("getSequence", accountNumber, sequence);
 
-    console.log("Offline signer", offlineSigner);
+    // Not working
+    // const offlineSigner = await evmos.getOfflineSigner();
+    const offlineSigner = await window.keplr.getOfflineSignerAuto(chainId);
+
+    // console.log("Offline signer", offlineSigner);
 
     const accounts = await offlineSigner.getAccounts();
 
@@ -89,7 +98,7 @@ export default function Home() {
     const message = createTxIBCMsgTransfer(
       {
         chainId: 9001,
-        cosmosChainId: evmos.chain.chain_id,
+        cosmosChainId: chainId,
       },
       {
         accountAddress: evmos.address,
@@ -117,12 +126,36 @@ export default function Home() {
 
     console.log("message", message);
 
+    // await offlineSigner.signDirect(evmos.address, {
+    //   ...message.signDirect,
+    //   chainId: chainId,
+    // });
+
     // @ts-ignore
-    await window.keplr.signDirect(
-      evmos.chain.chain_id,
+    const { signature, signed } = await window.keplr.signDirect(
+      chainId,
       evmos.address,
-      message.signDirect
+      {
+        bodyBytes: message.signDirect.body.serializeBinary(),
+        authInfoBytes: message.signDirect.authInfo.serializeBinary(),
+        accountNumber: new Long(accountNumber),
+        chainId,
+      }
     );
+
+    const raw = TxRaw.fromPartial({
+      bodyBytes: signed.bodyBytes,
+      authInfoBytes: signed.authInfoBytes,
+      signatures: fromBase64(signature.signature),
+    });
+
+    const bytes = TxRaw.encode(raw).finish();
+
+    const tx = await client.broadcastTx(bytes);
+
+    console.log("TX", tx);
+
+    assertIsDeliverTxSuccess(tx);
 
     // const message = createMessageSend({
     //   chainId: 9001,

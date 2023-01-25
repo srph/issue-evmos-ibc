@@ -50,10 +50,12 @@ export default function Home() {
 
     const { accountNumber, sequence } = await client.getSequence(evmos.address);
 
+    // @ts-ignore
     const offlineSigner = await window.keplr.getOfflineSignerAuto(chainId);
 
     const accounts = await offlineSigner.getAccounts();
 
+    // @ts-ignore
     const account = accounts.find((account) => {
       return account.address === evmos.address;
     });

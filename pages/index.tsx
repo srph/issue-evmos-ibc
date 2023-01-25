@@ -42,33 +42,6 @@ export default function Home() {
       throw new Error("Missing relevant addresses");
     }
 
-    const fee = {
-      amount: [
-        {
-          amount: "0",
-          denom: "aevmos",
-        },
-      ],
-      gas: String(convertDenomToMicroDenom(0.25)),
-    };
-
-    console.log(fee);
-
-    // const msgTransfer = {
-    //   typeUrl: "/ibc.applications.transfer.v1.MsgTransfer",
-    //   value: {
-    //     sourcePort: "transfer",
-    //     sourceChannel: "channel-25",
-    //     token: {
-    //       amount: String(convertDenomToMicroDenom(IBC_AMOUNT, 1e18)),
-    //       denom: "aevmos",
-    //     },
-    //     sender: evmos.address,
-    //     receiver: stride.address,
-    //     timeoutTimestamp: generateIbcTimeoutTimestamp(),
-    //   },
-    // };
-
     const client = await evmos.getSigningStargateClient();
 
     const chainId = await client.getChainId();
@@ -77,13 +50,7 @@ export default function Home() {
 
     const { accountNumber, sequence } = await client.getSequence(evmos.address);
 
-    // console.log("getSequence", accountNumber, sequence);
-
-    // Not working
-    // const offlineSigner = await evmos.getOfflineSigner();
     const offlineSigner = await window.keplr.getOfflineSignerAuto(chainId);
-
-    // console.log("Offline signer", offlineSigner);
 
     const accounts = await offlineSigner.getAccounts();
 
@@ -124,13 +91,6 @@ export default function Home() {
       }
     );
 
-    console.log("message", message);
-
-    // await offlineSigner.signDirect(evmos.address, {
-    //   ...message.signDirect,
-    //   chainId: chainId,
-    // });
-
     // @ts-ignore
     const { signature, signed } = await window.keplr.signDirect(
       chainId,
@@ -146,7 +106,7 @@ export default function Home() {
     const raw = TxRaw.fromPartial({
       bodyBytes: signed.bodyBytes,
       authInfoBytes: signed.authInfoBytes,
-      signatures: fromBase64(signature.signature),
+      signatures: [fromBase64(signature.signature)],
     });
 
     const bytes = TxRaw.encode(raw).finish();

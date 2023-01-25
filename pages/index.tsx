@@ -71,6 +71,7 @@ export default function Home() {
 
     const { accountNumber, sequence } = await client.getSequence(evmos.address);
 
+    // Not working
     const offlineSigner = await evmos.getOfflineSigner();
 
     console.log("Offline signer", offlineSigner);
@@ -116,6 +117,7 @@ export default function Home() {
 
     console.log("message", message);
 
+    // @ts-ignore
     await window.keplr.signDirect(
       evmos.chain.chain_id,
       evmos.address,

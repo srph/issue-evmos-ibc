@@ -29,6 +29,7 @@
     "@evmos/proto": "^0.1.27",
     "@tharsis/transactions": "^0.2.6",
     "bignumber.js": "^9.1.1",
+    "buffer": "^6.0.3",
     "chain-registry": "1.6.0",
     "chakra-react-select": "4.4.0",
     "fast-fuzzy": "1.12.0",

@@ -7,6 +7,7 @@ import { assertIsDeliverTxSuccess } from "@cosmjs/stargate";
 import { useMutation } from "react-query";
 import Long from "long";
 import { fromBase64 } from "@cosmjs/encoding";
+import { Buffer } from "buffer";
 import {
   createMessageSend,
   createTxIBCMsgTransfer,
@@ -73,7 +74,7 @@ export default function Home() {
         accountAddress: evmos.address,
         sequence,
         accountNumber,
-        pubkey: account.pubkey.toString(),
+        pubkey: Buffer.from(account.pubkey).toString("base64"),
       },
       {
         amount: "0",
